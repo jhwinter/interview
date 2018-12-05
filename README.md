@@ -36,7 +36,7 @@ Please include:
 - PHP Code
 - Anything else you think is necessary 
 
-##FAQ
+## FAQ
 
 What do if I'm stuck?
 
