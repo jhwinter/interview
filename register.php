@@ -1,6 +1,6 @@
 <?php
   // Include db config
-  require_once 'server.php';
+  require_once 'db.php';
 
   // Init vars
   $name = $email = $password = $confirm_password = '';
@@ -12,35 +12,32 @@
     $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
 
     // Put post vars in regular vars
-      $name =  trim($_POST['name'])
-      $email = trim($_POST['email'])
-      $password = trim($_POST['password'])
-      $confirm_password = trim($_POST['confirm_password'])
+      $name =  trim($_POST['name']);
+      $email = trim($_POST['email']);
+      $password = trim($_POST['password']);
+      $confirm_password = trim($_POST['confirm_password']);
 
     // Validate email
     if(empty($email)){
       $email_err = 'Please enter email';
     } else {
       // Prepare a select statement
-      $sql = 'SELECT id FROM users WHERE email = :email';
+      $sql = 'SELECT id FROM users WHERE email=:email';
+      $stmt = $pdo->prepare($sql);
+      // Bind variables
+      $stmt->bindParam(':email', $email, PDO::PARAM_STR);
 
-      if($stmt = $db->prepare($sql)){
-        // Bind variables
-        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
-
-        // Attempt to execute
-        if($stmt->execute()){
-          // Check if email exists
-          if($stmt->rowCount() === 1){
-            $email_err = 'Email is already taken';
-          }
-        } else {
-          die('Something went wrong');
+      // Attempt to execute
+      if($stmt->execute()){
+        // Check if email exists
+        if($stmt->rowCount() == 1){
+          $email_err = 'Email is already taken';
         }
+      } else {
+        die('Something went wrong');
       }
-
-      unset($stmt);
     }
+    unset($stmt);
 
     // Validate name
     if(empty($name)){
@@ -70,37 +67,34 @@
 
       // Prepare insert query
       $sql = 'INSERT INTO users (name, email, password) VALUES (:name, :email, :password)';
-
-      if($stmt = $pdo->prepare($sql)){
-        // Bind params
-        $stmt->bindParam(':name', $name, PDO::PARAM_STR);
-        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
-        $stmt->bindParam(':password', $password, PDO::PARAM_STR);
-
-        // Attempt to execute
-        if($stmt->execute()){
-          // Redirect to login
-          header('location: login.php');
-        } else {
-          die('Something went wrong');
-        }
+      $stmt = $pdo->prepare($sql);
+      // Bind params
+      $stmt->bindParam(':name', $name, PDO::PARAM_STR);
+      $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+      $stmt->bindParam(':password', $password, PDO::PARAM_STR);
+      $success = $stmt->execute();
+      // Attempt to execute
+      if($success){
+        // Redirect to login
+        header('location: login.php');
+      } else {
+        die('Something went wrong');
       }
       unset($stmt);
     }
-
     // Close connection
-    unset($pdo)
+    unset($pdo);
   }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <!-- Bootstrap 4.1.3 - CSS - Minified -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">  <title>Register An Account</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <!-- Bootstrap 4.1.3 - CSS - Minified -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  <title>Register An Account</title>
 </head>
 <body class="bg-primary">
   <div class="container">
@@ -109,7 +103,7 @@
         <div class="card card-body bg-light mt-5">
           <h2>Create Account</h2>
           <p>Fill in this form to register</p>
-          <form action="<?php //echo $_SERVER['PHP_SELF']; ?>" method="POST">
+          <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST">
             <div class="form-group">
               <label for="name">Name *</label>
               <input type="text" name="name" class="form-control form-control-lg <?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $name; ?>">

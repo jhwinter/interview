@@ -3,7 +3,7 @@
   require_once 'db.php';
 
   // Init vars
-  $emale = $password = '';
+  $email = $password = '';
   $email_err = $password_err = '';
 
   // Process form when post submit
@@ -29,35 +29,34 @@
     if(empty($email_err) && empty($password_err)){
       // Prepare query
       $sql = 'SELECT name, email, password FROM users WHERE email = :email';
-
       // Prepare statement
-      if($stmt = $pdo->prepare($sql)){
-        // Bind params
-        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+      $stmt = $pdo->prepare($sql);
+      // Bind params
+      $stmt->bindParam(':email', $email, PDO::PARAM_STR);
 
-        // Attempt execute
-        if($stmt->execute()){
-          // Check if email exists
-          if($stmt->rowCount() === 1){
-            if($row = $stmt->fetch()){
-              $hashed_password = $row['password'];
-              if(password_verify($password, $hashed_password)){
-                // SUCCESSFUL LOGIN
-                session_start();
-                $_SESSION['email'] = $email;
-                $_SESSION['name'] = $row['name'];
-                header('location: index.php');
-              } else {
-                // Display wrong password message
-                $password_err = 'The password you entered is not valid';
-              }
+      // Attempt execute
+      if($stmt->execute()){
+        // Check if email exists
+        if($stmt->rowCount() === 1){
+          $row = $stmt->fetch();
+          if($row){
+            $hashed_password = $row['password'];
+            if(password_verify($password, $hashed_password)){
+              // SUCCESSFUL LOGIN
+              session_start();
+              $_SESSION['email'] = $email;
+              $_SESSION['name'] = $row['name'];
+              header('location: index.php');
+            } else {
+              // Display wrong password message
+              $password_err = 'The password you entered is not valid';
             }
-          } else {
-            $email_err = 'No account found for that email';
           }
         } else {
-          die('Something went wrong');
+          $email_err = 'No account found for that email';
         }
+      } else {
+        die('Something went wrong');
       }
       // Close statement
       unset($stmt);
@@ -67,14 +66,14 @@
     unset($pdo);
   }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Login To Your Account</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+  <title>Login To Your Account</title>
 </head>
 <body class="bg-primary">
   <div class="container">
@@ -83,10 +82,10 @@
         <div class="card card-body bg-light mt-5">
           <h2>Login</h2>
           <p>Fill in your credentials</p>
-          <form action="<?php //echo $_SERVER['PHP_SELF']; ?>" method="POST">
+          <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST">
             <div class="form-group">
               <label for="email">Email Address</label>
-              <input type="email" name="user" class="form-control form-control-lg <?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $email; ?>">
+              <input type="email" name="email" class="form-control form-control-lg <?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $email; ?>">
               <span class="invalid-feedback"><?php echo $email_err; ?></span>
             </div>
             <div class="form-group">

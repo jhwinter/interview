@@ -3,12 +3,12 @@
   session_start();
 
   // Unset all session values
-  $_SESSION = array();
-
+  session_unset();
+  
   // Destroy session
   session_destroy();
-
+  
   // Redirect to login
   header('location: login.php');
-  exit;
-  
+  die;
+?>

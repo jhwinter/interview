@@ -1,14 +1,14 @@
 <?php
   // Init session
-
+  session_start();
 
   // Include db config
-  require_once 'server.php';
+  require_once 'db.php';
 
   // Validate login
   if(!isset($_SESSION['email']) || empty($_SESSION['email'])){
     header('location: login.php');
-    exit;
+    die;
   }
 ?>
 
@@ -27,7 +27,7 @@
       <div class="col">
         <div class="card card-body bg-light mt-5">
           <h2>Dashboard <small class="text-muted"><?php echo $_SESSION['email']; ?></small></h2>
-          <p>Welcome to the dashboard <?php echo $_SESSION['yourname']; ?></p>
+          <p>Welcome to the dashboard <?php echo $_SESSION['name']; ?></p>
           <p><a href="logout.php" class="btn btn-danger">Logout</a></p>
         </div>
       </div>
